@@ -15,7 +15,8 @@
   ],
   "require": {
     "php": "^7.3 || ^8",
-    "composer-plugin-api": "^2.3"
+    "composer-plugin-api": "^2.3",
+    "fi1a/format": "~1.1.0"
   },
   "require-dev": {
     "captainhook/captainhook": "^5.4",
