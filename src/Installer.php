@@ -4,9 +4,18 @@ declare(strict_types=1);
 
 namespace Fi1a\Installers;
 
+use Composer\IO\IOInterface;
+use Composer\Installer\BinaryInstaller;
 use Composer\Installer\LibraryInstaller;
 use Composer\Package\PackageInterface;
+use Composer\PartialComposer;
 use Composer\Repository\InstalledRepositoryInterface;
+use Composer\Util\Filesystem;
+use Fi1a\Console\IO\ConsoleInput;
+use Fi1a\Console\IO\Formatter;
+use Fi1a\Console\IO\InputInterface;
+use Fi1a\Console\IO\OutputInterface;
+use Fi1a\Console\IO\Style\TrueColorStyle;
 use React\Promise\PromiseInterface;
 
 /**
@@ -20,11 +29,36 @@ class Installer extends LibraryInstaller
     private $installer;
 
     /**
+     * @var OutputInterface
+     */
+    private $output;
+
+    /**
+     * @var InputInterface
+     */
+    private $stream;
+
+    /**
      * @var string[]
      */
     private $supportedTypes = [
         'bitrix-d7-module' => BitrixModuleInstaller::class,
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public function __construct(
+        IOInterface $io,
+        PartialComposer $composer,
+        ?string $type = 'library',
+        ?Filesystem $filesystem = null,
+        ?BinaryInstaller $binaryInstaller = null
+    ) {
+        parent::__construct($io, $composer, $type, $filesystem, $binaryInstaller);
+        $this->output = new ComposerOutput($this->io, new Formatter(TrueColorStyle::class), true);
+        $this->stream = new ConsoleInput();
+    }
 
     /**
      * @inheritDoc
@@ -112,7 +146,7 @@ class Installer extends LibraryInstaller
          * @var LibraryInstallerInterface $instance
          * @psalm-suppress InvalidStringClass
          */
-        $instance = new $class($package, $this->composer, $this->io);
+        $instance = new $class($package, $this->composer, $this->output, $this->stream);
         assert($instance instanceof LibraryInstallerInterface);
 
         return $this->installer = $instance;

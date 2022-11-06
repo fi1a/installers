@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Fi1a\Installers;
 
-use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
 use Composer\PartialComposer;
+use Fi1a\Console\IO\InputInterface;
+use Fi1a\Console\IO\OutputInterface;
 use Fi1a\Format\Formatter;
 use InvalidArgumentException;
 
@@ -26,9 +27,14 @@ abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
     protected $composer;
 
     /**
-     * @var IOInterface
+     * @var OutputInterface
      */
-    protected $io;
+    protected $output;
+
+    /**
+     * @var InputInterface
+     */
+    protected $stream;
 
     /**
      * Возвращает путь по умолчанию
@@ -38,11 +44,16 @@ abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
     /**
      * @inheritDoc
      */
-    public function __construct(PackageInterface $package, PartialComposer $composer, IOInterface $io)
-    {
+    public function __construct(
+        PackageInterface $package,
+        PartialComposer $composer,
+        OutputInterface $output,
+        InputInterface $stream
+    ) {
         $this->package = $package;
         $this->composer = $composer;
-        $this->io = $io;
+        $this->output = $output;
+        $this->stream = $stream;
     }
 
     /**
