@@ -14,4 +14,21 @@
             <directory name="vendor" />
         </ignoreFiles>
     </projectFiles>
+    <issueHandlers>
+        <UndefinedClass>
+            <errorLevel type="suppress">
+                <file name="src/BitrixModuleInstaller.php" />
+            </errorLevel>
+        </UndefinedClass>
+        <UndefinedFunction>
+            <errorLevel type="suppress">
+                <file name="src/BitrixModuleInstaller.php" />
+            </errorLevel>
+        </UndefinedFunction>
+        <MixedMethodCall>
+            <errorLevel type="suppress">
+                <file name="src/BitrixModuleInstaller.php" />
+            </errorLevel>
+        </MixedMethodCall>
+    </issueHandlers>
 </psalm>

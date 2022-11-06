@@ -6,8 +6,8 @@ namespace Fi1a\Installers;
 
 use Composer\Package\PackageInterface;
 use Composer\PartialComposer;
+use Fi1a\Console\IO\ConsoleOutputInterface;
 use Fi1a\Console\IO\InputInterface;
-use Fi1a\Console\IO\OutputInterface;
 use Fi1a\Format\Formatter;
 use InvalidArgumentException;
 
@@ -27,7 +27,7 @@ abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
     protected $composer;
 
     /**
-     * @var OutputInterface
+     * @var ConsoleOutputInterface
      */
     protected $output;
 
@@ -47,7 +47,7 @@ abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
     public function __construct(
         PackageInterface $package,
         PartialComposer $composer,
-        OutputInterface $output,
+        ConsoleOutputInterface $output,
         InputInterface $stream
     ) {
         $this->package = $package;
@@ -62,14 +62,9 @@ abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
     public function getInstallPath(): string
     {
         $prettyName = $this->package->getPrettyName();
-        if (strpos($prettyName, '/') !== false) {
-            [$vendor, $name] = explode('/', $prettyName);
-        } else {
-            $vendor = '';
-            $name = $prettyName;
-        }
+        [$vendor, $name] = Helper::getVendorAndName($prettyName);
 
-        $path = $this->getCustomPath($prettyName, $this->package->getType());
+        $path = $this->getCustomPath($prettyName, $vendor, $this->package->getType());
         if ($path === false) {
             $path = $this->getDefaultPath();
         }
@@ -90,7 +85,7 @@ abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
      *
      * @return false|string
      */
-    protected function getCustomPath(string $name, string $type)
+    protected function getCustomPath(string $name, string $vendor, string $type)
     {
         $type = mb_strtolower($type);
         /**
@@ -105,6 +100,7 @@ abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
             if (
                 in_array($name, $names)
                 || in_array('type:' . $type, $names)
+                || in_array('vendor:' . $vendor, $names)
             ) {
                 return (string) $path;
             }

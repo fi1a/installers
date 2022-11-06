@@ -12,9 +12,9 @@ use Composer\PartialComposer;
 use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Util\Filesystem;
 use Fi1a\Console\IO\ConsoleInput;
+use Fi1a\Console\IO\ConsoleOutputInterface;
 use Fi1a\Console\IO\Formatter;
 use Fi1a\Console\IO\InputInterface;
-use Fi1a\Console\IO\OutputInterface;
 use Fi1a\Console\IO\Style\TrueColorStyle;
 use React\Promise\PromiseInterface;
 
@@ -29,7 +29,7 @@ class Installer extends LibraryInstaller
     private $installer;
 
     /**
-     * @var OutputInterface
+     * @var ConsoleOutputInterface
      */
     private $output;
 
@@ -73,13 +73,14 @@ class Installer extends LibraryInstaller
      */
     public function getInstallPath(PackageInterface $package)
     {
-        $installer = $this->getInstallerInstance($package);
-        $path = $installer->getInstallPath();
-        if (!$this->filesystem->isAbsolutePath($path)) {
-            $path = getcwd() . '/' . $path;
-        }
+        $service = new Service(
+            $package,
+            $this->getInstallerInstance($package),
+            $this->output,
+            $this->stream
+        );
 
-        return $path;
+        return $service->getInstallPath();
     }
 
     /**
@@ -87,15 +88,16 @@ class Installer extends LibraryInstaller
      */
     public function install(InstalledRepositoryInterface $repo, PackageInterface $package)
     {
-        $this->getInstallerInstance($package);
-
-        $outputStatus = function (): void {
-            echo 'install!!!';
-        };
+        $service = new Service(
+            $package,
+            $this->getInstallerInstance($package),
+            $this->output,
+            $this->stream
+        );
 
         $promise = parent::install($repo, $package);
 
-        return $promise instanceof PromiseInterface ? $promise->then($outputStatus) : null;
+        return $promise instanceof PromiseInterface ? $promise->then([$service, 'install']) : null;
     }
 
     /**

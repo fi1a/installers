@@ -30,4 +30,36 @@ abstract class AbstractLibrary implements LibraryInterface
         $this->output = $output;
         $this->stream = $stream;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function canInstall(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function canUninstall(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function install(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function uninstall(): bool
+    {
+        return true;
+    }
 }
