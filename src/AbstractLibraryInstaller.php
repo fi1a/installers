@@ -31,6 +31,11 @@ abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
     protected $io;
 
     /**
+     * Возвращает путь по умолчанию
+     */
+    abstract protected function getDefaultPath(): string;
+
+    /**
      * @inheritDoc
      */
     public function __construct(PackageInterface $package, PartialComposer $composer, IOInterface $io)
@@ -39,11 +44,6 @@ abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
         $this->composer = $composer;
         $this->io = $io;
     }
-
-    /**
-     * @var string
-     */
-    protected $defaultPath = '';
 
     /**
      * @inheritDoc
@@ -60,7 +60,7 @@ abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
 
         $path = $this->getCustomPath($prettyName, $this->package->getType());
         if ($path === false) {
-            $path = $this->defaultPath;
+            $path = $this->getDefaultPath();
         }
         if (!$path) {
             throw new InvalidArgumentException(

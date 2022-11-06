@@ -39,10 +39,8 @@ class Installer extends LibraryInstaller
      */
     public function getInstallPath(PackageInterface $package)
     {
-        /**
-         * @psalm-suppress PossiblyNullReference
-         */
-        $path = $this->installer->getInstallPath();
+        $installer = $this->getInstallerInstance($package);
+        $path = $installer->getInstallPath();
         if (!$this->filesystem->isAbsolutePath($path)) {
             $path = getcwd() . '/' . $path;
         }
@@ -55,14 +53,7 @@ class Installer extends LibraryInstaller
      */
     public function install(InstalledRepositoryInterface $repo, PackageInterface $package)
     {
-        $class = $this->supportedTypes[mb_strtolower($package->getType())];
-        /**
-         * @var LibraryInstallerInterface $instance
-         * @psalm-suppress InvalidStringClass
-         */
-        $instance = new $class($package, $this->composer, $this->io);
-        assert($instance instanceof LibraryInstallerInterface);
-        $this->installer = $instance;
+        $this->getInstallerInstance($package);
 
         $outputStatus = function (): void {
             echo 'install!!!';
@@ -78,6 +69,8 @@ class Installer extends LibraryInstaller
      */
     public function uninstall(InstalledRepositoryInterface $repo, PackageInterface $package)
     {
+        $this->getInstallerInstance($package);
+
         $outputStatus = function (): void {
             echo 'uninstall!!!';
         };
@@ -94,6 +87,8 @@ class Installer extends LibraryInstaller
         PackageInterface $initial,
         PackageInterface $target
     ) {
+        $this->getInstallerInstance($initial);
+
         $outputStatus = function (): void {
             echo 'update!!!';
         };
@@ -101,5 +96,25 @@ class Installer extends LibraryInstaller
         $promise = parent::update($repo, $initial, $target);
 
         return $promise instanceof PromiseInterface ? $promise->then($outputStatus) : null;
+    }
+
+    /**
+     * Возвращает установщик
+     */
+    protected function getInstallerInstance(PackageInterface $package): LibraryInstallerInterface
+    {
+        if ($this->installer) {
+            return $this->installer;
+        }
+
+        $class = $this->supportedTypes[mb_strtolower($package->getType())];
+        /**
+         * @var LibraryInstallerInterface $instance
+         * @psalm-suppress InvalidStringClass
+         */
+        $instance = new $class($package, $this->composer, $this->io);
+        assert($instance instanceof LibraryInstallerInterface);
+
+        return $this->installer = $instance;
     }
 }

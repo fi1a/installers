@@ -10,7 +10,10 @@ namespace Fi1a\Installers;
 class BitrixModuleInstaller extends AbstractBitrixInstaller
 {
     /**
-     * @var string
+     * @inheritDoc
      */
-    protected $defaultPath = 'local/modules/{{vendor}}.{{name}}';
+    protected function getDefaultPath(): string
+    {
+        return '{{bitrix_dir}}/modules/{{vendor}}.{{name}}';
+    }
 }
