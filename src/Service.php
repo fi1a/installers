@@ -70,7 +70,7 @@ class Service implements ServiceInterface
             ->addValue('install')
             ->description(
                 FormatFormatter::format(
-                    '<question>Установить пакет "{{name}}" (y/n)?</question>',
+                    'Установить пакет <color=green>"{{name}}"</> <color=yellow>(y/n)</>?',
                     [
                         'name' => $package->getPrettyName(),
                     ]
@@ -95,7 +95,7 @@ class Service implements ServiceInterface
 
         if ($this->getInstaller($package)->install($library)) {
             $this->output->writeln(
-                '<success>Пакет "{{name}}" успешно установлен</success>',
+                '<color=green>Пакет "{{name}}" успешно установлен</>',
                 ['name' => $package->getPrettyName()]
             );
 
@@ -126,7 +126,7 @@ class Service implements ServiceInterface
             ->addValue('uninstall')
             ->description(
                 FormatFormatter::format(
-                    '<question>Удалить пакет "{{name}}" (y/n)?</question>',
+                    'Удалить пакет <color=green>"{{name}}"</> <color=yellow>(y/n)</>?',
                     [
                         'name' => $package->getPrettyName(),
                     ]
@@ -151,7 +151,7 @@ class Service implements ServiceInterface
 
         if ($this->getInstaller($package)->uninstall($library)) {
             $this->output->writeln(
-                '<success>Пакет "{{name}}" успешно удален</success>',
+                '<color=green>Пакет "{{name}}" успешно удален</>',
                 ['name' => $package->getPrettyName()]
             );
 
