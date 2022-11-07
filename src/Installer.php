@@ -11,11 +11,6 @@ use Composer\Package\PackageInterface;
 use Composer\PartialComposer;
 use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Util\Filesystem;
-use Fi1a\Console\IO\ConsoleInput;
-use Fi1a\Console\IO\ConsoleOutputInterface;
-use Fi1a\Console\IO\Formatter;
-use Fi1a\Console\IO\InputInterface;
-use Fi1a\Console\IO\Style\TrueColorStyle;
 use React\Promise\PromiseInterface;
 
 /**
@@ -24,26 +19,9 @@ use React\Promise\PromiseInterface;
 class Installer extends LibraryInstaller
 {
     /**
-     * @var LibraryInstallerInterface|null
+     * @var ServiceInterface
      */
-    private $installer;
-
-    /**
-     * @var ConsoleOutputInterface
-     */
-    private $output;
-
-    /**
-     * @var InputInterface
-     */
-    private $stream;
-
-    /**
-     * @var string[]
-     */
-    private $supportedTypes = [
-        'bitrix-d7-module' => BitrixModuleInstaller::class,
-    ];
+    private $service;
 
     /**
      * @inheritDoc
@@ -56,8 +34,7 @@ class Installer extends LibraryInstaller
         ?BinaryInstaller $binaryInstaller = null
     ) {
         parent::__construct($io, $composer, $type, $filesystem, $binaryInstaller);
-        $this->output = new ComposerOutput($this->io, new Formatter(TrueColorStyle::class), true);
-        $this->stream = new ConsoleInput();
+        $this->service = new Service($io, $composer);
     }
 
     /**
@@ -65,7 +42,7 @@ class Installer extends LibraryInstaller
      */
     public function supports(string $packageType): bool
     {
-        return array_key_exists($packageType, $this->supportedTypes);
+        return $this->service->supports($packageType);
     }
 
     /**
@@ -73,14 +50,7 @@ class Installer extends LibraryInstaller
      */
     public function getInstallPath(PackageInterface $package)
     {
-        $service = new Service(
-            $package,
-            $this->getInstallerInstance($package),
-            $this->output,
-            $this->stream
-        );
-
-        return $service->getInstallPath();
+        return $this->service->getInstallPath($package);
     }
 
     /**
@@ -88,16 +58,14 @@ class Installer extends LibraryInstaller
      */
     public function install(InstalledRepositoryInterface $repo, PackageInterface $package)
     {
-        $service = new Service(
-            $package,
-            $this->getInstallerInstance($package),
-            $this->output,
-            $this->stream
-        );
+        $service = $this->service;
+        $then = function () use ($service, $package): void {
+            $service->install($package);
+        };
 
         $promise = parent::install($repo, $package);
 
-        return $promise instanceof PromiseInterface ? $promise->then([$service, 'install']) : null;
+        return $promise instanceof PromiseInterface ? $promise->then($then) : null;
     }
 
     /**
@@ -105,8 +73,6 @@ class Installer extends LibraryInstaller
      */
     public function uninstall(InstalledRepositoryInterface $repo, PackageInterface $package)
     {
-        $this->getInstallerInstance($package);
-
         $outputStatus = function (): void {
             echo 'uninstall!!!';
         };
@@ -123,8 +89,6 @@ class Installer extends LibraryInstaller
         PackageInterface $initial,
         PackageInterface $target
     ) {
-        $this->getInstallerInstance($initial);
-
         $outputStatus = function (): void {
             echo 'update!!!';
         };
@@ -132,25 +96,5 @@ class Installer extends LibraryInstaller
         $promise = parent::update($repo, $initial, $target);
 
         return $promise instanceof PromiseInterface ? $promise->then($outputStatus) : null;
-    }
-
-    /**
-     * Возвращает установщик
-     */
-    protected function getInstallerInstance(PackageInterface $package): LibraryInstallerInterface
-    {
-        if ($this->installer) {
-            return $this->installer;
-        }
-
-        $class = $this->supportedTypes[mb_strtolower($package->getType())];
-        /**
-         * @var LibraryInstallerInterface $instance
-         * @psalm-suppress InvalidStringClass
-         */
-        $instance = new $class($package, $this->composer, $this->output, $this->stream);
-        assert($instance instanceof LibraryInstallerInterface);
-
-        return $this->installer = $instance;
     }
 }

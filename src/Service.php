@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Fi1a\Installers;
 
+use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
+use Composer\PartialComposer;
+use Fi1a\Console\IO\ConsoleInput;
 use Fi1a\Console\IO\ConsoleOutputInterface;
+use Fi1a\Console\IO\Formatter;
 use Fi1a\Console\IO\InputInterface;
 use Fi1a\Console\IO\InteractiveInput;
+use Fi1a\Console\IO\Style\TrueColorStyle;
 
 /**
  * Сервис
@@ -15,9 +20,11 @@ use Fi1a\Console\IO\InteractiveInput;
 class Service implements ServiceInterface
 {
     /**
-     * @var LibraryInstallerInterface
+     * @var string[]
      */
-    private $installer;
+    private $supportedTypes = [
+        'bitrix-d7-module' => BitrixModuleInstaller::class,
+    ];
 
     /**
      * @var ConsoleOutputInterface
@@ -30,31 +37,26 @@ class Service implements ServiceInterface
     private $stream;
 
     /**
-     * @var PackageInterface
+     * @var PartialComposer
      */
-    private $package;
+    private $composer;
 
     /**
      * @inheritDoc
      */
-    public function __construct(
-        PackageInterface $package,
-        LibraryInstallerInterface $installer,
-        ConsoleOutputInterface $output,
-        InputInterface $stream
-    ) {
-        $this->package = $package;
-        $this->installer = $installer;
-        $this->output = $output;
-        $this->stream = $stream;
+    public function __construct(IOInterface $io, PartialComposer $composer)
+    {
+        $this->output = new ComposerOutput($io, new Formatter(TrueColorStyle::class), true);
+        $this->stream = new ConsoleInput();
+        $this->composer = $composer;
     }
 
     /**
      * @inheritDoc
      */
-    public function install(): void
+    public function install(PackageInterface $package): void
     {
-        $library = $this->getLibrary();
+        $library = $this->getLibrary($package);
         if (!$library) {
             return;
         }
@@ -65,7 +67,7 @@ class Service implements ServiceInterface
 
         $interactive
             ->addValue('install')
-            ->description('<question>Установить пакет "' . $this->package->getPrettyName() . '" (y/n)?</question>')
+            ->description('<question>Установить пакет "' . $package->getPrettyName() . '" (y/n)?</question>')
             ->default(false)
             ->validation()
             ->allOf()
@@ -83,17 +85,17 @@ class Service implements ServiceInterface
             return;
         }
 
-        if ($this->installer->install($library)) {
+        if ($this->getInstaller($package)->install($library)) {
             $this->output->writeln(
                 '<success>Пакет "{{name}}" успешно установлен</success>',
-                ['name' => $this->package->getPrettyName()]
+                ['name' => $package->getPrettyName()]
             );
 
             return;
         }
         $this->output->writeln(
             '<error>Не удалось установить пакет "{{name}}"</error>',
-            ['name' => $this->package->getPrettyName()]
+            ['name' => $package->getPrettyName()]
         );
     }
 
@@ -102,11 +104,11 @@ class Service implements ServiceInterface
      *
      * @return LibraryInterface|false
      */
-    private function getLibrary()
+    private function getLibrary(PackageInterface $package)
     {
-        $prettyName = $this->package->getPrettyName();
+        $prettyName = $package->getPrettyName();
         $classify = Helper::classify($prettyName);
-        $path = $this->getInstallPath() . '/installers/' . $classify . '.php';
+        $path = $this->getInstallPath($package) . '/installers/' . $classify . '.php';
         if (!is_file($path)) {
             return false;
         }
@@ -130,9 +132,9 @@ class Service implements ServiceInterface
     /**
      * {@inheritDoc}
      */
-    public function getInstallPath(): string
+    public function getInstallPath(PackageInterface $package): string
     {
-        $path = $this->installer->getInstallPath();
+        $path = $this->getInstaller($package)->getInstallPath();
         if (
             !(
             strpos($path, '/') === 0
@@ -144,5 +146,29 @@ class Service implements ServiceInterface
         }
 
         return $path;
+    }
+
+    /**
+     * Возвращает установщик
+     */
+    protected function getInstaller(PackageInterface $package): LibraryInstallerInterface
+    {
+        $class = $this->supportedTypes[mb_strtolower($package->getType())];
+        /**
+         * @var LibraryInstallerInterface $instance
+         * @psalm-suppress InvalidStringClass
+         */
+        $instance = new $class($package, $this->composer, $this->output, $this->stream);
+        assert($instance instanceof LibraryInstallerInterface);
+
+        return $instance;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function supports(string $packageType): bool
+    {
+        return array_key_exists($packageType, $this->supportedTypes);
     }
 }
