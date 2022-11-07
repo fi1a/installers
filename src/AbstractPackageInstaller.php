@@ -12,9 +12,9 @@ use Fi1a\Format\Formatter;
 use InvalidArgumentException;
 
 /**
- * Абстрактный класс типов установщиков библиотек
+ * Абстрактный класс типов установщиков пакетов
  */
-abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
+abstract class AbstractPackageInstaller implements PackageInstallerInterface
 {
     /**
      * @var PackageInterface
@@ -70,7 +70,7 @@ abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
         }
         if (!$path) {
             throw new InvalidArgumentException(
-                sprintf('Не найден путь для установки библиотеки %s', $this->package->getType())
+                sprintf('Не найден путь для установки пакета %s', $this->package->getType())
             );
         }
 
@@ -81,7 +81,7 @@ abstract class AbstractLibraryInstaller implements LibraryInstallerInterface
     }
 
     /**
-     * Возвращает путь до установки библиотеки
+     * Возвращает путь до установки пакета
      *
      * @return false|string
      */

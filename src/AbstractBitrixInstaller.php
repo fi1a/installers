@@ -7,7 +7,7 @@ namespace Fi1a\Installers;
 /**
  * Абстрактный установщик 1С-Битрикс
  */
-abstract class AbstractBitrixInstaller extends AbstractLibraryInstaller
+abstract class AbstractBitrixInstaller extends AbstractPackageInstaller
 {
     /**
      * @inheritDoc

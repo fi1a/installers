@@ -8,7 +8,7 @@ use Fi1a\Console\IO\InputInterface;
 use Fi1a\Console\IO\OutputInterface;
 
 /**
- * Абстрактный класс библиотеки
+ * Абстрактный класс пакета
  */
 abstract class AbstractLibrary implements LibraryInterface
 {

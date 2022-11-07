@@ -13,6 +13,7 @@ use Fi1a\Console\IO\Formatter;
 use Fi1a\Console\IO\InputInterface;
 use Fi1a\Console\IO\InteractiveInput;
 use Fi1a\Console\IO\Style\TrueColorStyle;
+use Fi1a\Format\Formatter as FormatFormatter;
 
 /**
  * Сервис
@@ -67,7 +68,14 @@ class Service implements ServiceInterface
 
         $interactive
             ->addValue('install')
-            ->description('<question>Установить пакет "' . $package->getPrettyName() . '" (y/n)?</question>')
+            ->description(
+                FormatFormatter::format(
+                    '<question>Установить пакет "{{name}}" (y/n)?</question>',
+                    [
+                        'name' => $package->getPrettyName(),
+                    ]
+                )
+            )
             ->default(false)
             ->validation()
             ->allOf()
@@ -100,7 +108,63 @@ class Service implements ServiceInterface
     }
 
     /**
-     * Возвращает класс библиотеки
+     * @inheritDoc
+     */
+    public function uninstall(PackageInterface $package): void
+    {
+        $library = $this->getLibrary($package);
+        if (!$library) {
+            return;
+        }
+        if (!$library->canUninstall()) {
+            return;
+        }
+
+        $interactive = new InteractiveInput($this->output, $this->stream);
+
+        $interactive
+            ->addValue('uninstall')
+            ->description(
+                FormatFormatter::format(
+                    '<question>Удалить пакет "{{name}}" (y/n)?</question>',
+                    [
+                        'name' => $package->getPrettyName(),
+                    ]
+                )
+            )
+            ->default(false)
+            ->validation()
+            ->allOf()
+            ->boolean();
+
+        $interactive->read();
+
+        $installValue = $interactive->getValue('uninstall');
+        $isUninstall = $installValue && in_array(
+            mb_strtolower((string) $installValue->getValue()),
+            ['y', '1', 'true', 'yes']
+        );
+
+        if (!$isUninstall) {
+            return;
+        }
+
+        if ($this->getInstaller($package)->uninstall($library)) {
+            $this->output->writeln(
+                '<success>Пакет "{{name}}" успешно удален</success>',
+                ['name' => $package->getPrettyName()]
+            );
+
+            return;
+        }
+        $this->output->writeln(
+            '<error>Не удалось удалить пакет "{{name}}"</error>',
+            ['name' => $package->getPrettyName()]
+        );
+    }
+
+    /**
+     * Возвращает класс пакета
      *
      * @return LibraryInterface|false
      */
@@ -123,7 +187,7 @@ class Service implements ServiceInterface
          */
         $instance = new $class($this->output, $this->stream);
         if (!is_subclass_of($instance, LibraryInterface::class)) {
-            throw new \LogicException('Класс библиотеки должен реализовывать интерфейс ' . LibraryInterface::class);
+            throw new \LogicException('Класс пакета должен реализовывать интерфейс ' . LibraryInterface::class);
         }
 
         return $instance;
@@ -151,15 +215,15 @@ class Service implements ServiceInterface
     /**
      * Возвращает установщик
      */
-    protected function getInstaller(PackageInterface $package): LibraryInstallerInterface
+    protected function getInstaller(PackageInterface $package): PackageInstallerInterface
     {
         $class = $this->supportedTypes[mb_strtolower($package->getType())];
         /**
-         * @var LibraryInstallerInterface $instance
+         * @var PackageInstallerInterface $instance
          * @psalm-suppress InvalidStringClass
          */
         $instance = new $class($package, $this->composer, $this->output, $this->stream);
-        assert($instance instanceof LibraryInstallerInterface);
+        assert($instance instanceof PackageInstallerInterface);
 
         return $instance;
     }

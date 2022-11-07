@@ -10,9 +10,9 @@ use Fi1a\Console\IO\ConsoleOutputInterface;
 use Fi1a\Console\IO\InputInterface;
 
 /**
- * Интерфейс типов установщиков библиотек
+ * Интерфейс типов установщиков пакета
  */
-interface LibraryInstallerInterface
+interface PackageInstallerInterface
 {
     /**
      * Конструктор
@@ -29,5 +29,13 @@ interface LibraryInstallerInterface
      */
     public function getInstallPath(): string;
 
+    /**
+     * Установить пакет
+     */
     public function install(LibraryInterface $library): bool;
+
+    /**
+     * Удалить пакет
+     */
+    public function uninstall(LibraryInterface $library): bool;
 }

@@ -25,32 +25,7 @@ class BitrixModuleInstaller extends AbstractBitrixInstaller
      */
     public function install(LibraryInterface $library): bool
     {
-        $bitrixDir = $this->getBitrixDir();
-        if (
-            !(
-            strpos($bitrixDir, '/') === 0
-            || substr($bitrixDir, 1, 1) === ':'
-            || strpos($bitrixDir, '\\\\') === 0
-            )
-        ) {
-            $bitrixDir = getcwd() . '/' . $bitrixDir;
-        }
-        if (!is_dir($bitrixDir)) {
-            throw new \LogicException(sprintf('1С-Битрикс по пути "%s" не найден', $bitrixDir));
-        }
-
-        $_SERVER['DOCUMENT_ROOT'] = realpath($bitrixDir . '/..');
-
-        defined('NO_KEEP_STATISTIC') || define('NO_KEEP_STATISTIC', true);
-        defined('NOT_CHECK_PERMISSIONS') || define('NOT_CHECK_PERMISSIONS', true);
-        defined('BX_WITH_ON_AFTER_EPILOG') || define('BX_WITH_ON_AFTER_EPILOG', true);
-        defined('BX_NO_ACCELERATOR_RESET') || define('BX_NO_ACCELERATOR_RESET', true);
-
-        /**
-         * @psalm-suppress UnresolvableInclude
-         */
-        require_once $bitrixDir . '/modules/main/include/prolog_before.php';
-
+        $this->includeBitrix();
         $return = true;
 
         $moduleId = $this->getModuleId();
@@ -78,8 +53,34 @@ class BitrixModuleInstaller extends AbstractBitrixInstaller
             /**
              * @psalm-suppress MixedMethodCall
              */
-            $return = (bool) $module->DoInstall();
+            $return = $module->DoInstall() !== false;
             $return = $return && $library->install();
+        }
+
+        return $return;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function uninstall(LibraryInterface $library): bool
+    {
+        $this->includeBitrix();
+        $return = true;
+
+        $moduleId = $this->getModuleId();
+
+        /**
+         * @var CModule $module
+         */
+        $module = CModule::CreateModuleObject($moduleId);
+        if ($module->IsInstalled()) {
+            foreach (GetModuleEvents('main', 'OnModuleInstalled', true) as $event) {
+                assert(is_array($event));
+                ExecuteModuleEventEx($event, [$moduleId, false]);
+            }
+            $return = $module->DoUninstall() !== false;
+            $return = $return && $library->uninstall();
         }
 
         return $return;
@@ -93,5 +94,37 @@ class BitrixModuleInstaller extends AbstractBitrixInstaller
         [$vendor, $name] = Helper::getVendorAndName($this->package->getPrettyName());
 
         return $vendor . '.' . $name;
+    }
+
+    /**
+     * Подключить битрикс
+     */
+    private function includeBitrix(): void
+    {
+        $bitrixDir = $this->getBitrixDir();
+        if (
+            !(
+                strpos($bitrixDir, '/') === 0
+                || substr($bitrixDir, 1, 1) === ':'
+                || strpos($bitrixDir, '\\\\') === 0
+            )
+        ) {
+            $bitrixDir = getcwd() . '/' . $bitrixDir;
+        }
+        if (!is_dir($bitrixDir)) {
+            throw new \LogicException(sprintf('1С-Битрикс по пути "%s" не найден', $bitrixDir));
+        }
+
+        $_SERVER['DOCUMENT_ROOT'] = realpath($bitrixDir . '/..');
+
+        defined('NO_KEEP_STATISTIC') || define('NO_KEEP_STATISTIC', true);
+        defined('NOT_CHECK_PERMISSIONS') || define('NOT_CHECK_PERMISSIONS', true);
+        defined('BX_WITH_ON_AFTER_EPILOG') || define('BX_WITH_ON_AFTER_EPILOG', true);
+        defined('BX_NO_ACCELERATOR_RESET') || define('BX_NO_ACCELERATOR_RESET', true);
+
+        /**
+         * @psalm-suppress UnresolvableInclude
+         */
+        require_once $bitrixDir . '/modules/main/include/prolog_before.php';
     }
 }

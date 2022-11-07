@@ -8,7 +8,7 @@ use Fi1a\Console\IO\InputInterface;
 use Fi1a\Console\IO\OutputInterface;
 
 /**
- * Интерфейс библиотеки
+ * Интерфейс пакета
  */
 interface LibraryInterface
 {
@@ -18,22 +18,22 @@ interface LibraryInterface
     public function __construct(OutputInterface $output, InputInterface $stream);
 
     /**
-     * Можно установить библиотеку или нет
+     * Можно установить пакет или нет
      */
     public function canInstall(): bool;
 
     /**
-     * Можно удалить библиотеку или нет
+     * Можно удалить пакет или нет
      */
     public function canUninstall(): bool;
 
     /**
-     * Устанавливает библиотеку
+     * Устанавливает пакет
      */
     public function install(): bool;
 
     /**
-     * Удаляет библиотеку
+     * Удаляет пакет
      */
     public function uninstall(): bool;
 }

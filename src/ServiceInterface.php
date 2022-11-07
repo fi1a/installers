@@ -19,17 +19,22 @@ interface ServiceInterface
     public function __construct(IOInterface $io, PartialComposer $composer);
 
     /**
-     * Возвращает путь куда будет установлена библиотека
+     * Возвращает путь куда будет установлен пакет
      */
     public function getInstallPath(PackageInterface $package): string;
 
     /**
-     * Установка библиотеки
+     * Установка пакета
      */
     public function install(PackageInterface $package): void;
 
     /**
-     * Поддерживается ли тип библиотеки
+     * Удалить пакет
+     */
+    public function uninstall(PackageInterface $package): void;
+
+    /**
+     * Поддерживается ли тип пакет
      */
     public function supports(string $packageType): bool;
 }

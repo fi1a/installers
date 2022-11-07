@@ -10,7 +10,7 @@ namespace Fi1a\Installers;
 class Helper
 {
     /**
-     * Возвращает вендора и название библиотеки
+     * Возвращает вендора и название пакета
      *
      * @return string[]
      */
