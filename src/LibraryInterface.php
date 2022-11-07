@@ -38,6 +38,11 @@ interface LibraryInterface
     public function uninstall(): bool;
 
     /**
+     * Обновляет пакет
+     */
+    public function update(): bool;
+
+    /**
      * Возвращает текущую версию пакета
      */
     public function getCurrentVersion(): VersionInterface;

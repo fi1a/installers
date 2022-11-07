@@ -87,12 +87,13 @@ class Installer extends LibraryInstaller
         PackageInterface $initial,
         PackageInterface $target
     ) {
-        $outputStatus = function (): void {
-            echo 'update!!!';
+        $service = $this->service;
+        $then = function () use ($service, $initial, $target): void {
+            $service->update($initial, $target);
         };
 
         $promise = parent::update($repo, $initial, $target);
 
-        return $promise instanceof PromiseInterface ? $promise->then($outputStatus) : null;
+        return $promise instanceof PromiseInterface ? $promise->then($then) : null;
     }
 }

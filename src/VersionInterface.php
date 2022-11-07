@@ -28,4 +28,9 @@ interface VersionInterface
      * Номер билда
      */
     public function getBuild(): int;
+
+    /**
+     * Возвращает строку с номером версии
+     */
+    public function getPretty(): string;
 }

@@ -34,6 +34,11 @@ interface ServiceInterface
     public function uninstall(PackageInterface $package): void;
 
     /**
+     * Обновление пакета
+     */
+    public function update(PackageInterface $initial, PackageInterface $target): void;
+
+    /**
      * Поддерживается ли тип пакет
      */
     public function supports(string $packageType): bool;

@@ -57,4 +57,12 @@ class Version implements VersionInterface
     {
         return $this->build;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function getPretty(): string
+    {
+        return $this->getMajor() . '.' . $this->getMinor() . '.' . $this->getBuild();
+    }
 }

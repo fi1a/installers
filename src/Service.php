@@ -70,7 +70,7 @@ class Service implements ServiceInterface
             ->addValue('install')
             ->description(
                 FormatFormatter::format(
-                    'Установить пакет <color=green>"{{name}}"</> <color=yellow>(y/n)</>?',
+                    'Установить пакет <color=green>"{{name}}"</> (<color=yellow>y/n</>)?',
                     [
                         'name' => $package->getPrettyName(),
                     ]
@@ -126,7 +126,7 @@ class Service implements ServiceInterface
             ->addValue('uninstall')
             ->description(
                 FormatFormatter::format(
-                    'Удалить пакет <color=green>"{{name}}"</> <color=yellow>(y/n)</>?',
+                    'Удалить пакет <color=green>"{{name}}"</> (<color=yellow>y/n</>)?',
                     [
                         'name' => $package->getPrettyName(),
                     ]
@@ -161,6 +161,22 @@ class Service implements ServiceInterface
             '<error>Не удалось удалить пакет "{{name}}"</error>',
             ['name' => $package->getPrettyName()]
         );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function update(PackageInterface $initial, PackageInterface $target): void
+    {
+        $library = $this->getLibrary($target);
+        if (!$library) {
+            return;
+        }
+
+        echo $library->getCurrentVersion()->getPretty();
+        echo $library->getUpdateVersion()->getPretty();
+
+        //$this->getInstaller($package)->install($library);
     }
 
     /**
