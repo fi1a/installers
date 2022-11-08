@@ -38,4 +38,14 @@ interface PackageInstallerInterface
      * Удалить пакет
      */
     public function uninstall(LibraryInterface $library): bool;
+
+    /**
+     * Обновить пакет
+     */
+    public function update(LibraryInterface $library): bool;
+
+    /**
+     * Обновить версию
+     */
+    public function updateVersion(UpdateVersionInterface $updater): bool;
 }

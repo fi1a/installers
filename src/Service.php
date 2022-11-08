@@ -14,6 +14,7 @@ use Fi1a\Console\IO\InputInterface;
 use Fi1a\Console\IO\InteractiveInput;
 use Fi1a\Console\IO\Style\TrueColorStyle;
 use Fi1a\Format\Formatter as FormatFormatter;
+use LogicException;
 
 /**
  * Сервис
@@ -193,11 +194,70 @@ class Service implements ServiceInterface
             return;
         }
 
-        //$path = $this->getInstallPath($target) . '/installers/';
+        $installer = $this->getInstaller($target);
+        $path = $this->getInstallPath($target) . '/installers/versions';
+        $versionsDir = scandir($path);
+        foreach ($versionsDir as $version) {
+            if (
+                $version === '.'
+                || $version === '..'
+                || !is_dir($path . '/' . $version)
+                || !preg_match('/^([0-9]+)\.([0-9]+)\.([0-9]+)$/', $version)
+            ) {
+                continue;
+            }
 
-        $library->update();
+            [$major, $minor, $build] = explode('.', $version);
+            $updatedVersion = new Version((int) $major, (int) $minor, (int) $build);
+            if (
+                CompareVersion::isLess($updatedVersion, $library->getCurrentVersion())
+                || CompareVersion::isEqual($updatedVersion, $library->getCurrentVersion())
+            ) {
+                continue;
+            }
+            $updater = $this->getUpdateVersion($target, $updatedVersion);
+            if (!$updater) {
+                continue;
+            }
 
-        //$this->getInstaller($package)->install($library);
+            $installer->updateVersion($updater);
+        }
+
+        $installer->update($library);
+    }
+
+    /**
+     * Возвращает класс обновления пакета
+     *
+     * @return false|UpdateVersionInterface
+     */
+    private function getUpdateVersion(PackageInterface $package, VersionInterface $version)
+    {
+        $prettyName = $package->getPrettyName();
+        $classify = Helper::classify($prettyName);
+        $path = $this->getInstallPath($package) . '/installers/versions/'
+            . $version->getPretty() . '/UpdateVersion.php';
+        if (!is_file($path)) {
+            return false;
+        }
+        $class = 'Fi1a\\Installers\\' . $classify . '\\Versions\\Version'
+            . $version->getMajor() . '_' . $version->getMinor() . '_' . $version->getBuild() . '\\UpdateVersion';
+        include_once $path;
+        if (!class_exists($class)) {
+            return false;
+        }
+        /**
+         * @var UpdateVersionInterface $instance
+         * @psalm-suppress MixedMethodCall
+         */
+        $instance = new $class($this->output, $this->stream);
+        if (!is_subclass_of($instance, UpdateVersionInterface::class)) {
+            throw new LogicException(
+                'Класс обновления должен реализовывать интерфейс ' . UpdateVersionInterface::class
+            );
+        }
+
+        return $instance;
     }
 
     /**
@@ -209,11 +269,11 @@ class Service implements ServiceInterface
     {
         $prettyName = $package->getPrettyName();
         $classify = Helper::classify($prettyName);
-        $path = $this->getInstallPath($package) . '/installers/' . $classify . '.php';
+        $path = $this->getInstallPath($package) . '/installers/Library.php';
         if (!is_file($path)) {
             return false;
         }
-        $class = '\\Fi1a\\Installers\\' . $classify;
+        $class = '\\Fi1a\\Installers\\' . $classify . '\\Library';
         include_once $path;
         if (!class_exists($class)) {
             return false;
@@ -224,7 +284,7 @@ class Service implements ServiceInterface
          */
         $instance = new $class($this->output, $this->stream);
         if (!is_subclass_of($instance, LibraryInterface::class)) {
-            throw new \LogicException('Класс пакета должен реализовывать интерфейс ' . LibraryInterface::class);
+            throw new LogicException('Класс пакета должен реализовывать интерфейс ' . LibraryInterface::class);
         }
 
         return $instance;

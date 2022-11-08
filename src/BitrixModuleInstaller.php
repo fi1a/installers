@@ -31,10 +31,10 @@ class BitrixModuleInstaller extends AbstractBitrixInstaller
         $moduleId = $this->getModuleId();
 
         /**
-         * @var CModule $module
+         * @var CModule|false $module
          */
         $module = CModule::CreateModuleObject($moduleId);
-        if (!$module->IsInstalled()) {
+        if ($module && !$module->IsInstalled()) {
             /**
              * @var \Bitrix\Main\DB\Connection $connection
              */
@@ -71,10 +71,10 @@ class BitrixModuleInstaller extends AbstractBitrixInstaller
         $moduleId = $this->getModuleId();
 
         /**
-         * @var CModule $module
+         * @var CModule|false $module
          */
         $module = CModule::CreateModuleObject($moduleId);
-        if ($module->IsInstalled()) {
+        if ($module && $module->IsInstalled()) {
             foreach (GetModuleEvents('main', 'OnModuleInstalled', true) as $event) {
                 assert(is_array($event));
                 ExecuteModuleEventEx($event, [$moduleId, false]);
@@ -84,6 +84,40 @@ class BitrixModuleInstaller extends AbstractBitrixInstaller
         }
 
         return $return;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function update(LibraryInterface $library): bool
+    {
+        $this->includeBitrix();
+        /**
+         * @var CModule|false $module
+         */
+        $module = CModule::CreateModuleObject($this->getModuleId());
+        if ($module && $module->IsInstalled()) {
+            return $library->update();
+        }
+
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function updateVersion(UpdateVersionInterface $updater): bool
+    {
+        $this->includeBitrix();
+        /**
+         * @var CModule|false $module
+         */
+        $module = CModule::CreateModuleObject($this->getModuleId());
+        if ($module && $module->IsInstalled()) {
+            return $updater->update();
+        }
+
+        return true;
     }
 
     /**
