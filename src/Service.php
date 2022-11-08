@@ -173,8 +173,29 @@ class Service implements ServiceInterface
             return;
         }
 
-        echo $library->getCurrentVersion()->getPretty();
-        echo $library->getUpdateVersion()->getPretty();
+        if (CompareVersion::isEqual($library->getCurrentVersion(), $library->getUpdateVersion())) {
+            return;
+        }
+
+        $isUpdate = CompareVersion::isLess($library->getCurrentVersion(), $library->getUpdateVersion());
+
+        if (!$isUpdate) {
+            $this->output->writeln(
+                '<color=red>Невозможно понизить версию пакета "{{name}}"</>'
+                . ' (<color=yellow>{{current}} => {{update}}</>)',
+                [
+                    'name' => $target->getPrettyName(),
+                    'current' => $library->getCurrentVersion()->getPretty(),
+                    'update' => $library->getUpdateVersion()->getPretty(),
+                ]
+            );
+
+            return;
+        }
+
+        //$path = $this->getInstallPath($target) . '/installers/';
+
+        $library->update();
 
         //$this->getInstaller($package)->install($library);
     }
