@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Fi1a\Installers;
 
 /**
- * Вспомогательный класс
+ * Вспомогательный методы
  */
 class Helper
 {
