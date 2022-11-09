@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Fi1a\Installers;
 
-use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
 use Composer\PartialComposer;
+use Fi1a\Console\IO\ConsoleOutputInterface;
+use Fi1a\Console\IO\StreamInput;
 
 /**
  * Интерфейс сервиса
@@ -16,7 +17,7 @@ interface ServiceInterface
     /**
      * Конструктор
      */
-    public function __construct(IOInterface $io, PartialComposer $composer);
+    public function __construct(ConsoleOutputInterface $output, StreamInput $stream, PartialComposer $composer);
 
     /**
      * Возвращает путь куда будет установлен пакет

@@ -9,6 +9,8 @@ use CModule;
 
 /**
  * Установщик модулей 1С-Битрикс
+ *
+ * @codeCoverageIgnore
  */
 class BitrixModuleInstaller extends AbstractBitrixInstaller
 {

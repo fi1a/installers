@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace Fi1a\Installers;
 
-use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
 use Composer\PartialComposer;
-use Fi1a\Console\IO\ConsoleInput;
 use Fi1a\Console\IO\ConsoleOutputInterface;
-use Fi1a\Console\IO\Formatter;
 use Fi1a\Console\IO\InputInterface;
 use Fi1a\Console\IO\InteractiveInput;
-use Fi1a\Console\IO\Style\TrueColorStyle;
+use Fi1a\Console\IO\StreamInput;
 use Fi1a\Format\Formatter as FormatFormatter;
 use LogicException;
 
@@ -46,10 +43,10 @@ class Service implements ServiceInterface
     /**
      * @inheritDoc
      */
-    public function __construct(IOInterface $io, PartialComposer $composer)
+    public function __construct(ConsoleOutputInterface $output, StreamInput $stream, PartialComposer $composer)
     {
-        $this->output = new ComposerOutput($io, new Formatter(TrueColorStyle::class), true);
-        $this->stream = new ConsoleInput();
+        $this->output = $output;
+        $this->stream = $stream;
         $this->composer = $composer;
     }
 
@@ -71,7 +68,8 @@ class Service implements ServiceInterface
             ->addValue('install')
             ->description(
                 FormatFormatter::format(
-                    'Установить пакет <color=green>"{{name}}"</> (<color=yellow>y/n</>)?',
+                    '  - <color=green>fi1a/installers</>: установить пакет '
+                    . '<color=green>"{{name}}"</> (<color=yellow>y/n</>)?',
                     [
                         'name' => $package->getPrettyName(),
                     ]
@@ -96,14 +94,14 @@ class Service implements ServiceInterface
 
         if ($this->getInstaller($package)->install($library)) {
             $this->output->writeln(
-                '<color=green>Пакет "{{name}}" успешно установлен</>',
+                '  - <color=green>fi1a/installers</>: пакет <color=green>"{{name}}"</> успешно установлен',
                 ['name' => $package->getPrettyName()]
             );
 
             return;
         }
         $this->output->writeln(
-            '<error>Не удалось установить пакет "{{name}}"</error>',
+            '<error>  - fi1a/installers: не удалось установить пакет "{{name}}"</error>',
             ['name' => $package->getPrettyName()]
         );
     }
@@ -127,7 +125,8 @@ class Service implements ServiceInterface
             ->addValue('uninstall')
             ->description(
                 FormatFormatter::format(
-                    'Удалить пакет <color=green>"{{name}}"</> (<color=yellow>y/n</>)?',
+                    '  - <color=green>fi1a/installers</>: удалить пакет '
+                    . '<color=green>"{{name}}"</> (<color=yellow>y/n</>)?',
                     [
                         'name' => $package->getPrettyName(),
                     ]
@@ -152,14 +151,14 @@ class Service implements ServiceInterface
 
         if ($this->getInstaller($package)->uninstall($library)) {
             $this->output->writeln(
-                '<color=green>Пакет "{{name}}" успешно удален</>',
+                '  - <color=green>fi1a/installers</>: пакет <color=green>"{{name}}"</> успешно удален',
                 ['name' => $package->getPrettyName()]
             );
 
             return;
         }
         $this->output->writeln(
-            '<error>Не удалось удалить пакет "{{name}}"</error>',
+            '<error>  - fi1a/installers: не удалось удалить пакет "{{name}}"</error>',
             ['name' => $package->getPrettyName()]
         );
     }
@@ -196,6 +195,9 @@ class Service implements ServiceInterface
 
         $installer = $this->getInstaller($target);
         $path = $this->getInstallPath($target) . '/installers/versions';
+        if (!is_dir($path)) {
+            return;
+        }
         $versionsDir = scandir($path);
         foreach ($versionsDir as $version) {
             if (
@@ -212,6 +214,10 @@ class Service implements ServiceInterface
             if (
                 CompareVersion::isLess($updatedVersion, $library->getCurrentVersion())
                 || CompareVersion::isEqual($updatedVersion, $library->getCurrentVersion())
+                || (
+                    !CompareVersion::isLess($updatedVersion, $library->getUpdateVersion())
+                    && !CompareVersion::isEqual($updatedVersion, $library->getUpdateVersion())
+                )
             ) {
                 continue;
             }
@@ -265,7 +271,7 @@ class Service implements ServiceInterface
      *
      * @return LibraryInterface|false
      */
-    private function getLibrary(PackageInterface $package)
+    protected function getLibrary(PackageInterface $package)
     {
         $prettyName = $package->getPrettyName();
         $classify = Helper::classify($prettyName);

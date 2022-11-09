@@ -10,6 +10,8 @@ use Composer\Plugin\PluginInterface;
 
 /**
  * Plugin
+ *
+ * @codeCoverageIgnore
  */
 class Plugin implements PluginInterface
 {

@@ -11,10 +11,15 @@ use Composer\Package\PackageInterface;
 use Composer\PartialComposer;
 use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Util\Filesystem;
+use Fi1a\Console\IO\ConsoleInput;
+use Fi1a\Console\IO\Formatter;
+use Fi1a\Console\IO\Style\TrueColorStyle;
 use React\Promise\PromiseInterface;
 
 /**
  * Composer LibraryInstaller
+ *
+ * @codeCoverageIgnore
  */
 class Installer extends LibraryInstaller
 {
@@ -34,7 +39,9 @@ class Installer extends LibraryInstaller
         ?BinaryInstaller $binaryInstaller = null
     ) {
         parent::__construct($io, $composer, $type, $filesystem, $binaryInstaller);
-        $this->service = new Service($io, $composer);
+        $output = new ComposerOutput($io, new Formatter(TrueColorStyle::class), true);
+        $stream = new ConsoleInput();
+        $this->service = new Service($output, $stream, $composer);
     }
 
     /**

@@ -2,35 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Fi1a\Installers;
+namespace Fi1a\Installers\Fi1aLibraryexception;
 
-use Fi1a\Console\IO\InputInterface;
-use Fi1a\Console\IO\OutputInterface;
+use Fi1a\Installers\Version;
+use Fi1a\Installers\VersionInterface;
 
 /**
- * Абстрактный класс пакета
+ * Библиотека
  */
-abstract class AbstractLibrary implements LibraryInterface
+class Library
 {
-    /**
-     * @var OutputInterface
-     */
-    protected $output;
-
-    /**
-     * @var InputInterface
-     */
-    protected $stream;
-
-    /**
-     * @inheritDoc
-     */
-    public function __construct(OutputInterface $output, InputInterface $stream)
-    {
-        $this->output = $output;
-        $this->stream = $stream;
-    }
-
     /**
      * @inheritDoc
      */
@@ -69,5 +50,21 @@ abstract class AbstractLibrary implements LibraryInterface
     public function update(): bool
     {
         return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCurrentVersion(): VersionInterface
+    {
+        return new Version(1, 0, 0);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getUpdateVersion(): VersionInterface
+    {
+        return new Version(1, 1, 0);
     }
 }
