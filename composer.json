@@ -1,7 +1,7 @@
 {
   "name": "fi1a/installers",
   "type": "composer-plugin",
-  "description": "Composer установка и обновление пакетов",
+  "description": "Установка и обновление пакетов через composer для фреймворков",
   "keywords": [
     "Bitrix"
   ],
