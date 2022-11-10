@@ -47,6 +47,9 @@
   "extra": {
     "class": "Fi1a\\Installers\\Plugin"
   },
+  "provide": {
+    "composer/installers": "*"
+  },
   "scripts": {
     "fl:lint": "phpcs --cache=build/cache/phpcs.cache",
     "fl:phpcbf": "phpcbf --cache=build/cache/phpcbf.cache",
