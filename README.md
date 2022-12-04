@@ -18,14 +18,14 @@
 
 ## Пример composer.json файла
 
-В файле composer.json необходимо указать тип пакета "type": "bitrix-d7-module" и подключить пакет «require»: { "fi1a/installers": "~1.0" }.
+В файле composer.json необходимо указать тип пакета "type": "bitrix-d7-module" и подключить пакет «require»: { "fi1a/installers": "^2.0" }.
 
 ```json
 {
  "name": "foo/bar",
  "type": "bitrix-d7-module",
  "require": {
-  "fi1a/installers": "~1.0"
+  "fi1a/installers": "^2.0"
  }
 }
 ```
@@ -76,7 +76,7 @@
 
 Для установки модуля 1С-Битрикс (тип пакета ```bitrix-d7-module```) необходимо указать путь до папки с 1С-Битрикс в 
 вашем `composer.json` файле проекта, после чего выполнить установку пакета через ```composer require```, 
-предварительно выполнив ```composer require "fi1a/installers:~1.0"```.
+предварительно выполнив ```composer require fi1a/installers```.
 
 ```json
 {
@@ -87,7 +87,7 @@
 ```
 
 ```shell
-composer require "fi1a/installers:~1.0"
+composer require fi1a/installers
 composer require foo/bar
 ```
 
