@@ -5,6 +5,7 @@
 [![PHP Version][badge-php]][php]
 ![Coverage Status][badge-coverage]
 [![Total Downloads][badge-downloads]][downloads]
+[![Support mail][badge-mail]][mail]
 
 Эта библиотека осуществляет установку, обновление и удаление пакетов на основе типа через composer для фреймворков.
 Имеется возможность настроить путь установки для каждого пакета.
@@ -302,8 +303,10 @@ class UpdateVersion extends AbstractUpdateVersion
 [badge-php]: https://img.shields.io/packagist/php-v/fi1a/installers?style=flat-square
 [badge-coverage]: https://img.shields.io/badge/coverage-100%25-green
 [badge-downloads]: https://img.shields.io/packagist/dt/fi1a/installers.svg?style=flat-square&colorB=mediumvioletred
+[badge-mail]: https://img.shields.io/badge/mail-support%40fi1a.ru-brightgreen
 
 [packagist]: https://packagist.org/packages/fi1a/installers
 [license]: https://github.com/fi1a/installers/blob/master/LICENSE
 [php]: https://php.net
 [downloads]: https://packagist.org/packages/fi1a/installers
+[mail]: mailto:support@fi1a.ru
