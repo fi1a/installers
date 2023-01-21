@@ -204,6 +204,33 @@ class ServiceTest extends TestCase
     }
 
     /**
+     * Событие после установки кода пакета
+     */
+    public function testAfterInstallCode(): void
+    {
+        $package = new Package('fi1a/testmodule', '1.0.0', '1.0.0');
+        $package->setType('bitrix-d7-module');
+
+        $service = $this->getMockBuilder(Service::class)
+            ->onlyMethods(['getInstaller'])
+            ->setConstructorArgs([$this->output, $this->input, $this->composer])
+            ->getMock();
+
+        $service->expects($this->atLeastOnce())
+            ->method('getInstaller')
+            ->will($this->returnValue(
+                new FixtureModuleInstaller(
+                    $package,
+                    $this->composer,
+                    $this->output,
+                    $this->input
+                )
+            ));
+
+        $service->afterInstallCode($package);
+    }
+
+    /**
      * Устанавливает пакет
      */
     public function testNotInstall(): void
@@ -341,6 +368,33 @@ class ServiceTest extends TestCase
         $this->stream->write('y');
         $this->stream->seek(0);
         $service->uninstall($package);
+    }
+
+    /**
+     * Событие после удаления кода пакета
+     */
+    public function testAfterRemoveCode(): void
+    {
+        $package = new Package('fi1a/testmodule', '1.0.0', '1.0.0');
+        $package->setType('bitrix-d7-module');
+
+        $service = $this->getMockBuilder(Service::class)
+            ->onlyMethods(['getInstaller'])
+            ->setConstructorArgs([$this->output, $this->input, $this->composer])
+            ->getMock();
+
+        $service->expects($this->atLeastOnce())
+            ->method('getInstaller')
+            ->will($this->returnValue(
+                new FixtureModuleInstaller(
+                    $package,
+                    $this->composer,
+                    $this->output,
+                    $this->input
+                )
+            ));
+
+        $service->afterRemoveCode($package);
     }
 
     /**

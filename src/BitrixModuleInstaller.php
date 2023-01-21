@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fi1a\Installers;
 
 use Bitrix\Main\Application;
+use Bitrix\Main\Config\Option;
 use CModule;
 
 /**
@@ -14,6 +15,11 @@ use CModule;
  */
 class BitrixModuleInstaller extends AbstractBitrixInstaller
 {
+    /**
+     * @var bool
+     */
+    protected static $bitrixIncluded = false;
+
     /**
      * @inheritDoc
      */
@@ -65,6 +71,15 @@ class BitrixModuleInstaller extends AbstractBitrixInstaller
     /**
      * @inheritDoc
      */
+    public function afterInstallCode(): void
+    {
+        $this->includeBitrix();
+        Option::set('fi1a.installers', $this->getModuleId(), 'Y');
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function uninstall(LibraryInterface $library): bool
     {
         $this->includeBitrix();
@@ -86,6 +101,18 @@ class BitrixModuleInstaller extends AbstractBitrixInstaller
         }
 
         return $return;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function afterRemoveCode(): void
+    {
+        $this->includeBitrix();
+
+        Option::delete('fi1a.installers', [
+            'name' => $this->getModuleId(),
+        ]);
     }
 
     /**
@@ -137,6 +164,10 @@ class BitrixModuleInstaller extends AbstractBitrixInstaller
      */
     private function includeBitrix(): void
     {
+        if (static::$bitrixIncluded) {
+            return;
+        }
+
         $bitrixDir = $this->getBitrixDir();
         if (
             !(
@@ -147,7 +178,7 @@ class BitrixModuleInstaller extends AbstractBitrixInstaller
         ) {
             $bitrixDir = getcwd() . '/' . $bitrixDir;
         }
-        if (!is_dir($bitrixDir)) {
+        if (!is_dir($bitrixDir) || !is_file($bitrixDir . '/modules/main/include/prolog_before.php')) {
             throw new \LogicException(sprintf('1С-Битрикс по пути "%s" не найден', $bitrixDir));
         }
 
@@ -162,5 +193,7 @@ class BitrixModuleInstaller extends AbstractBitrixInstaller
          * @psalm-suppress UnresolvableInclude
          */
         require_once $bitrixDir . '/modules/main/include/prolog_before.php';
+
+        static::$bitrixIncluded = true;
     }
 }

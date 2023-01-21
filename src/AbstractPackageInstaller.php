@@ -120,4 +120,18 @@ abstract class AbstractPackageInstaller implements PackageInstallerInterface
     {
         return $vars;
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function afterInstallCode(): void
+    {
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function afterRemoveCode(): void
+    {
+    }
 }
