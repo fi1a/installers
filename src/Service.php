@@ -109,6 +109,14 @@ class Service implements ServiceInterface
     /**
      * @inheritDoc
      */
+    public function afterInstallCode(PackageInterface $package): void
+    {
+        $this->getInstaller($package)->afterInstallCode();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function uninstall(PackageInterface $package): void
     {
         $library = $this->getLibrary($package);
@@ -161,6 +169,14 @@ class Service implements ServiceInterface
             '<error>  - fi1a/installers: не удалось удалить пакет "{{name}}"</error>',
             ['name' => $package->getPrettyName()]
         );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function afterRemoveCode(PackageInterface $package): void
+    {
+        $this->getInstaller($package)->afterRemoveCode();
     }
 
     /**

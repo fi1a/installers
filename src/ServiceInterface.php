@@ -30,9 +30,19 @@ interface ServiceInterface
     public function install(PackageInterface $package): void;
 
     /**
+     * После установки кода пакета
+     */
+    public function afterInstallCode(PackageInterface $package): void;
+
+    /**
      * Удалить пакет
      */
     public function uninstall(PackageInterface $package): void;
+
+    /**
+     * После удаления кода пакета
+     */
+    public function afterRemoveCode(PackageInterface $package): void;
 
     /**
      * Обновление пакета
