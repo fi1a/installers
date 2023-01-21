@@ -35,9 +35,19 @@ interface PackageInstallerInterface
     public function install(LibraryInterface $library): bool;
 
     /**
+     * После установки кода пакета
+     */
+    public function afterInstallCode(): void;
+
+    /**
      * Удалить пакет
      */
     public function uninstall(LibraryInterface $library): bool;
+
+    /**
+     * После удаления кода пакета
+     */
+    public function afterRemoveCode(): void;
 
     /**
      * Обновить пакет

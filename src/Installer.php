@@ -67,6 +67,7 @@ class Installer extends LibraryInstaller
     {
         $service = $this->service;
         $then = function () use ($service, $package): void {
+            $service->afterInstallCode($package);
             $service->install($package);
         };
 
@@ -83,7 +84,13 @@ class Installer extends LibraryInstaller
         $service = $this->service;
         $service->uninstall($package);
 
-        return parent::uninstall($repo, $package);
+        $then = function () use ($service, $package): void {
+            $service->afterRemoveCode($package);
+        };
+
+        $promise = parent::uninstall($repo, $package);
+
+        return $promise instanceof PromiseInterface ? $promise->then($then) : null;
     }
 
     /**
