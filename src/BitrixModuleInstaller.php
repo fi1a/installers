@@ -47,12 +47,17 @@ class BitrixModuleInstaller extends AbstractBitrixInstaller
              * @var \Bitrix\Main\DB\Connection $connection
              */
             $connection = Application::getConnection();
+            /** @psalm-suppress MixedArgument */
             if (
-                strtolower((string) $connection->getType()) === 'mysql'
+                strtolower($connection->getType()) === 'mysql'
                 && defined('MYSQL_TABLE_TYPE')
-                && MYSQL_TABLE_TYPE
+                && strlen(MYSQL_TABLE_TYPE) > 0
             ) {
-                $connection->queryExecute('SET storage_engine = "' . MYSQL_TABLE_TYPE . '"');
+                try {
+                    $connection->queryExecute('SET storage_engine = "' . MYSQL_TABLE_TYPE . '"');
+                } catch (\Throwable $exception) {
+                    $connection->queryExecute('SET default_storage_engine = "' . MYSQL_TABLE_TYPE . '"');
+                }
             }
             foreach (GetModuleEvents('main', 'OnModuleInstalled', true) as $event) {
                 assert(is_array($event));
